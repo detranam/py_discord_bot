@@ -1,0 +1,6 @@
+*.mp3
+music/*
+book/*
+__pycache__/*
+*.exe
+auth.json

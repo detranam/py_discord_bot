@@ -1,0 +1,3 @@
+[submodule "pydl"]
+	path = pydl
+	url = https://github.com/detranam/music_downloader.git
