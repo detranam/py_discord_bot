@@ -214,6 +214,9 @@ async def al(ctx, *args):
         pass
     link = args[0]
     member_id = f'{ctx.message.author.id}'
+    log_user_and_action(member_id, "add playlist(s)")
+    logging.info(f"Added playlist {link}")
+
     music_directory = os.path.join(os.getcwd(), 'music')
 
     # Create folder for this user's music if there isn't already one
