@@ -7,7 +7,9 @@ These are just stretch goals I have in order to improve the bot overall.
 - [ ] Convert to Linux to allow it to run on an Pi 3B
 - [ ] Change my locally dependent variables to be top-level to allow for custom system locations (Or simply use linux :O )
 - [ ] Change file separators (forward or back slash) to be platform independent
-- [ ] Add a log file to log the specific commands used and who used them
+- [x] Add a log file to log the specific commands used and who used them
+- [ ] Document each method to allow syntax highlighting and for easier development
+- [ ] Add 'cogs' or other things to allow commands to be categorized
 
 ## Music Download TODO
 

@@ -11,14 +11,30 @@ from discord.ext import commands
 from discord.utils import get
 from discord import FFmpegPCMAudio
 from youtube_dl import YoutubeDL
-import asyncio
 import os
 
 
 bot = commands.Bot(command_prefix="!")
-logging.basicConfig(filename=f"{int(time.time())}.log", filemode="w", level=logging.DEBUG)
+logging.basicConfig(filename=f"{int(time.time())}.log",
+                    filemode="w", level=logging.DEBUG)
+
+
+def check_if_youtube_link(check_link):
+    """Lightly fuzzes a string to ensure it seems like a youtube link
+
+    Args:
+        check_link (String): The string to check
+    """
+    # Youtube links have a few things you need in it- first of all, it has to have youtube in it.
+    # This is mostly to ensure that they aren't just passing in song names or something weird.
+    if check_link.find("youtube.com") < 0 or check_link.find("playlist") < 0:
+        raise Exception(
+            f"String does not look like a YouTube link.... sanitize better? String: '{check_link}'")
+
 
 def ensure_music_folders_exist():
+    """Creates the folders on disc that are required for music downloads and storage.
+    """
     music_directory = os.path.join(os.getcwd(), 'music')
     # Create the music_users.json file if it doesn't already exist:
     music_json_path = os.path.join(music_directory, 'music_users.json')
@@ -35,8 +51,10 @@ def ensure_user_exists(member_id):
     if not os.path.exists(music_folder_path):
         os.makedirs(music_folder_path)
 
+
 def log_user_and_action(member_id, action):
     logging.info(f"User {member_id} called {action}")
+
 
 @bot.command(brief="Vote for current book 1")
 async def vote1(ctx):
@@ -206,18 +224,13 @@ async def dl(ctx):
 @bot.command(brief="Adds a download link to a user's list")
 async def al(ctx, *args):
     if len(args) <= 0:
-        await ctx.send("When using '!al', you must include a link to a playlist!")
+        await ctx.send("When using '!al', you must include at least one link to a playlist!")
         return
-    for arg in args:
-        # TODO: Do initialization ONCE, then run through each link to ensure logging and allow
-        # for multiple links added at once.
-        pass
-    link = args[0]
-    member_id = f'{ctx.message.author.id}'
-    log_user_and_action(member_id, "add playlist(s)")
-    logging.info(f"Added playlist {link}")
 
     music_directory = os.path.join(os.getcwd(), 'music')
+
+    member_id = f'{ctx.message.author.id}'
+    log_user_and_action(member_id, "add playlist(s)")
 
     # Create folder for this user's music if there isn't already one
     music_folder_path = os.path.join(music_directory, f'{member_id}')
@@ -228,23 +241,33 @@ async def al(ctx, *args):
     music_json_path = os.path.join(music_directory, 'music_users.json')
     if not os.path.exists(music_json_path):
         with open(music_json_path, "w+") as initial_write:
-            initial_write.write("{\"nobodysID\": [\"google.com\"]}")
+            initial_write.write("{\"{nobodysID}\": [\"google.com\"]\}")
 
     # Get the user list from the json file
     with open(music_json_path, 'r') as json_in:
         users = json.load(json_in)
 
-    # If the user exists, check if link is already in there, if not, add it
-    if member_id in users:
-        if link not in users[member_id]:
-            users[member_id][link] = "" # f'{link}'
+    for arg in args:
+        # Check if the arg seems like a youtube link. If it does, keep going, otherwise catch the exception and log it.
+        try:
+            check_if_youtube_link(arg)
+        except:
+            await ctx.send(f"Link '{arg}' does not look like a YouTube link. Skipping!")
+            continue
+
+        link = arg
+        # If the user exists, check if link is already in there, if not, add it
+        if member_id in users:
+            if link not in users[member_id]:
+                users[member_id].append(link)
+            else:
+                await ctx.send("This playlist is already being tracked")
         else:
-            await ctx.send("This playlist is already being tracked")
-    else:
-        await ctx.send("Welcome! You're a new user. We created a tracking list for you <3")
-        users[member_id] = json.loads(
-            json.dumps([f'{link}']))
-    await ctx.send("Playlist has been added to your tracking list.")
+            await ctx.send("Welcome! You're a new user. We created a tracking list for you <3")
+            users[member_id] = json.loads(
+                json.dumps([f'{link}']))
+        await ctx.send(f"Added playlist {link}")
+        logging.info(f"Added playlist {link}")
 
     # Update the json file before we conclude
     with open(music_json_path, 'w') as json_out:
