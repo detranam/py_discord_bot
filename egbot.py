@@ -23,7 +23,7 @@ def check_if_youtube_link(check_link):
     """Lightly fuzzes a string to ensure it seems like a youtube link
 
     Args:
-        check_link (String): The string to check
+        check_link (string): The string to check
     """
     # Youtube links have a few things you need in it- first of all, it has to have youtube in it.
     # This is mostly to ensure that they aren't just passing in song names or something weird.
@@ -44,6 +44,11 @@ def ensure_music_folders_exist():
 
 
 def ensure_user_exists(member_id):
+    """Ensure that a user exists in the music/music_users.json file
+
+    Args:
+        member_id (int): the unique integer assigned to each user
+    """
     ensure_music_folders_exist()
     music_directory = os.path.join(os.getcwd(), 'music')
     # Create folder for this user's music if there isn't already one
@@ -53,6 +58,12 @@ def ensure_user_exists(member_id):
 
 
 def log_user_and_action(member_id, action):
+    """Logs the 'user' and action happening to the logging.info log file
+
+    Args:
+        member_id (int): The member's ID
+        action (string): The action the user is doing, to be logged
+    """
     logging.info(f"User {member_id} called {action}")
 
 
@@ -145,6 +156,12 @@ async def rmb(ctx, *args):
 
 
 def get_booklist():
+    """Gets the list of books that have been suggested
+
+    Returns:
+        string: the file path of the book suggestions json
+        TODO: what type is the booklist? Fill it out here.
+    """
     bracket.ensure_book_dir_exists()
     book_dir = os.path.join(os.getcwd(), 'book')
     # Create the music_users.json file if it doesn't already exist:
@@ -156,6 +173,12 @@ def get_booklist():
 
 
 def get_battlelist():
+    """Gets the list of head-to-head voting battles for each book
+
+    Returns:
+        string: the file path of the book suggestions json
+        TODO: what type is the booklist? Fill it out here.    
+    """
     bracket.ensure_book_dir_exists()
     book_dir = os.path.join(os.getcwd(), 'book')
     # Create the music_users.json file if it doesn't already exist:
