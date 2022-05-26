@@ -7,6 +7,7 @@ from textrand import RandomText as rt
 import bookbracket as bracket
 
 from pydl.musicman import download_playlist_links as dl_playlist
+import pydl.musicman as mm
 from discord.ext import commands
 from discord.utils import get
 from discord import FFmpegPCMAudio
@@ -237,10 +238,18 @@ async def dl(ctx):
     with open(music_json_path, 'r') as json_in:
         users = json.load(json_in)
     links = users[member_id]
-    updated_playlist_links = dl_playlist(user_music_directory, links)
-    users[member_id] = updated_playlist_links
-    with open(music_json_path, 'w') as json_out:
-        json.dump(users, json_out)
+    for iterator in range(len(links)):
+        updated_playlist_link = mm.download_playlist_atomic(user_music_directory,links[iterator])
+        if (updated_playlist_link == ""):
+            #If returns "", then there isn't any new songs.
+            continue
+        links[iterator] = updated_playlist_link
+        #updated_playlist_links = dl_playlist(user_music_directory, links)
+        users[member_id] = links
+        # We want to dump this out every time to make sure that we download each playlist individually and update it. 
+        # This saves us from needing a massive first time download for all playlists.
+        with open(music_json_path, 'w') as json_out:
+            json.dump(users, json_out)
     await ctx.send("Your playlists have been downloaded")
 
 
