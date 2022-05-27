@@ -9,7 +9,7 @@ These are just stretch goals I have in order to improve the bot overall.
 - [ ] Change file separators (forward or back slash) to be platform independent
 - [x] Add a log file to log the specific commands used and who used them
 - [x] Document each method to allow syntax highlighting and for easier development
-- [ ] Add 'cogs' or other classes to allow commands to be categorized more appropriately
+- [x] Add 'cogs' or other classes to allow commands to be categorized more appropriately
 
 ## Music Download TODO
 

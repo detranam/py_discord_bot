@@ -2,7 +2,6 @@ import json
 import time
 import logging
 from time import sleep
-from textrand import RandomText as rt
 
 from discord.ext import commands
 from discord.utils import get
@@ -10,10 +9,15 @@ from discord import FFmpegPCMAudio
 from youtube_dl import YoutubeDL
 import os
 
-
-bot = commands.Bot(command_prefix="!")
-logging.basicConfig(filename=f"{int(time.time())}.log",
+#Begin our logging immediately, placed in the logs/ folder
+log_dir = os.path.join(os.getcwd(), 'logs')
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+logging.basicConfig(filename=os.path.join(log_dir, f"{int(time.time())}.log"),
                     filemode="w", level=logging.DEBUG)
+
+# Create the bot with cmd prefix '!'
+bot = commands.Bot(command_prefix="!")
 
 
 def ensure_music_folders_exist():
