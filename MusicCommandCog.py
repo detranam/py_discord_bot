@@ -109,5 +109,6 @@ class MusicFunctionality(commands.Cog):
         with open(music_json_path, 'w') as json_out:
             json.dump(users, json_out)
 
+
 def setup(bot):
     bot.add_cog(MusicFunctionality(bot))

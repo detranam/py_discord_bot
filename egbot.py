@@ -1,25 +1,19 @@
-import random
 import json
 import time
 import logging
 from time import sleep
 from textrand import RandomText as rt
-import bookbracket as bracket
 
-import discord
 from discord.ext import commands
 from discord.utils import get
 from discord import FFmpegPCMAudio
 from youtube_dl import YoutubeDL
 import os
-import MusicCommandCog as musicCog
 
 
 bot = commands.Bot(command_prefix="!")
 logging.basicConfig(filename=f"{int(time.time())}.log",
                     filemode="w", level=logging.DEBUG)
-
-
 
 
 def ensure_music_folders_exist():
@@ -57,165 +51,11 @@ def log_user_and_action(member_id, action):
     logging.info(f"User {member_id} called {action}")
 
 
-@bot.command(brief="Vote for current book 1")
-async def vote1(ctx):
-    if not bracket.is_bracket_started():
-        await ctx.send("Bracket not currently running.")
-        return
-    member_id = f'{ctx.message.author.id}'
-
-
-@bot.command(brief="Vote for current book 2")
-async def vote2(ctx):
-    if not bracket.is_bracket_started():
-        await ctx.send("Bracket not currently running.")
-        return
-    member_id = f'{ctx.message.author.id}'
-
-
-@bot.command(brief="Shows current voting options")
-async def vo(ctx):
-    # TODO: format this better than just a json dump
-    currbattle = bracket.get_current_bracket()[bracket.current_battle_num()]
-    await ctx.send(f"Choices are:\n\t1: '{currbattle['b1']}'\n\t2: '{currbattle['b2']}'\nVote for one or the other by typing !vote1 or !vote2")
-
-
-@bot.command(brief="Creates a random bracket of books")
-async def createbracket(ctx):
-    print(f"User {ctx.message.author} is attempting to make a bracket of books")
-    bracket_file = bracket.ensure_bracket_dir_exists()
-    _, booklist = get_booklist()
-    # at this point bracket_file exists but is an empty LIST
-    # Shuffle keys
-    random.shuffle(booklist)
-    # Pair off all the books into tuple:(str,str), if odd make last one
-    # (str,"NULL"), create a list out of them
-    book_count = len(booklist)
-    odd_count = book_count % 2 == 1
-    battle_count = book_count//2
-    battle_list = []
-    for i in range(battle_count):
-        battle_list.append((booklist[0+(2*i)], booklist[1+(2*i)]))
-    if odd_count:
-        battle_list.append((booklist[book_count-1], "NULL"))
-    with open(bracket_file, "r") as battle_out:
-        battlejsonlist = json.load(battle_out)
-    # Create individual 'voting' objects and put them into the
-    with open(bracket_file, "w") as battle_json_out:
-        for battle in battle_list:
-            battlestr = {"b1": battle[0], "b2": battle[1], "winner": "none"}
-            battlejsonlist.append(battlestr)
-        json.dump(battlejsonlist, battle_json_out)
-
-    # now we update our settings so we know how many battles we have etc
-    bracket.update_bracket_settings(battle_count, odd_count)
-    print("Bracket successfully created")
-
-
-@bot.command(brief="Lists all books in the bracket")
-async def listb(ctx):
-    print(f"User {ctx.message.author} is attempting to list books")
-    out_str = "Books currently in the list are as follows:\n"
-    _, booklist = get_booklist()
-    for book in booklist:
-        out_str += f"\t{book}\n"
-    await ctx.send(out_str)
-
-
-@bot.command(brief="Removes a book recommendation from the bracket, ensure you type it in quotations!")
-async def rmb(ctx, *args):
-    if len(args) <= 0:
-        await ctx.send("When using '!ab', you must include a book you wish to add!")
-        return
-    print(
-        f"User {ctx.message.author} is attempting to remove book '{args[0]}'")
-    book_to_rm = args[0]
-    if " " not in book_to_rm:
-        await ctx.send("Detected one-word book title. This is probably a mistake! Make sure to use the command like '!ab \"This is my book!\"'")
-        return
-
-    book_file, booklist = get_booklist()
-
-    if book_to_rm in booklist:
-        booklist.remove(f"{book_to_rm}")
-        print(f"User {ctx.message.author} removed book '{args[0]}'")
-        with open(book_file, 'w') as json_out:
-            json.dump(booklist, json_out)
-    else:
-        await ctx.send(f"Book with name '{book_to_rm}' not found.")
-
-
-def get_booklist():
-    """Gets the list of books that have been suggested
-
-    Returns:
-        string: the file path of the book suggestions json
-        TODO: what type is the booklist? Fill it out here.
-    """
-    bracket.ensure_book_dir_exists()
-    book_dir = os.path.join(os.getcwd(), 'book')
-    # Create the music_users.json file if it doesn't already exist:
-    book_file = os.path.join(book_dir, 'book_suggestions.json')
-
-    with open(book_file, 'r') as json_in:
-        booklist = json.load(json_in)
-    return book_file, booklist
-
-
-def get_battlelist():
-    """Gets the list of head-to-head voting battles for each book
-
-    Returns:
-        string: the file path of the book suggestions json
-        TODO: what type is the booklist? Fill it out here.    
-    """
-    bracket.ensure_book_dir_exists()
-    book_dir = os.path.join(os.getcwd(), 'book')
-    # Create the music_users.json file if it doesn't already exist:
-    book_file = os.path.join(book_dir, 'book_suggestions.json')
-
-    with open(book_file, 'r') as json_in:
-        booklist = json.load(json_in)
-    return book_file, booklist
-
-
-@bot.command(brief="Adds a book recommendation to the bracket, ensure you type it in quotations!")
-async def ab(ctx, *args):
-    if len(args) <= 0:
-        await ctx.send("When using '!ab', you must include a book you wish to add!")
-        return
-    print(f"User {ctx.message.author} is attempting to add book '{args[0]}'")
-
-    book_to_add = args[0]
-    if " " not in book_to_add:
-        await ctx.send("Detected one-word book title. This is probably a mistake! Make sure to use the command like '!ab \"This is my book!\"'")
-        return
-
-    book_file, booklist = get_booklist()
-
-    already_exists = False
-    for book_title in booklist:
-        if book_title.casefold() == book_to_add.casefold():
-            await ctx.send(f"The book '{book_to_add}' is already in the bracket under '{book_title}'! Skipping.")
-            already_exists = True
-            break
-    # If we didn't find the book, add it
-    if not already_exists:
-        booklist.append(f"{book_to_add}")
-        print(f"User {ctx.message.author} added book '{args[0]}'")
-
-        with open(book_file, 'w') as json_out:
-            json.dump(booklist, json_out)
-
-
 @bot.command(brief="Disconnects the bot")
 async def dc(ctx):
     voice_channel = ctx.message.author.voice
     vc = await voice_channel.channel.connect()
     await vc.disconnect()
-
-
-
 
 
 @bot.command(brief="Plays a single video, from a youtube URL")
@@ -284,14 +124,13 @@ async def play(ctx, *sn):
 
 @bot.event
 async def on_ready():
-    #await bot.add_cog(musicCog.MusicFunctionality(bot))
-
     print('We have logged in as {0.user}'.format(bot))
     log_user_and_action("ADMIN", "FIRE UP BOT")
 
 if __name__ == "__main__":
     bot.load_extension('MusicCommandCog')
-    
+    bot.load_extension('BookBracketCog')
+
 # This runs the bot itself
 with open('auth.json') as f:
     data = json.load(f)
