@@ -199,7 +199,7 @@ class BookBracket(commands.Cog):
         await ctx.send(out_str)
 
     @commands.command(brief="Removes a book recommendation from the bracket, ensure you type it in quotations!")
-    async def rmb(ctx, *args):
+    async def rmb(self, ctx, *args):
         if len(args) <= 0:
             await ctx.send("When using '!ab', you must include a book you wish to add!")
             return
@@ -221,7 +221,7 @@ class BookBracket(commands.Cog):
             await ctx.send(f"Book with name '{book_to_rm}' not found.")
 
     @commands.command(brief="Adds a book recommendation to the bracket, ensure you type it in quotations!")
-    async def ab(ctx, *args):
+    async def ab(self, ctx, *args):
         if len(args) <= 0:
             await ctx.send("When using '!ab', you must include a book you wish to add!")
             return

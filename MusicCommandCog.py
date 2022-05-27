@@ -2,7 +2,6 @@ import json
 import os
 from discord.ext import commands
 import logging
-from pydl.musicman import download_playlist_links as dl_playlist
 import pydl.musicman as mm
 
 
@@ -24,7 +23,9 @@ class MusicFunctionality(commands.Cog):
         self.bot = bot
 
     @commands.command(brief="Downloads all the songs in your playlists")
-    async def dl(ctx):
+    async def dl(self, ctx):
+        """Downloads all tracked playlists for the given user
+        """
         await ctx.send("Downloading your playlists now. Please be patient!")
         member_id = f'{ctx.message.author.id}'
         logging.info(f"{member_id} began downloading music")
@@ -56,7 +57,12 @@ class MusicFunctionality(commands.Cog):
         await ctx.send("All playlists updated and downloaded, if necessary.")
 
     @commands.command(brief="Adds a download link to a user's list")
-    async def al(ctx, *args):
+    async def al(self, ctx, *args):
+        """Adds one or more playlists to the user's track
+
+        Args:
+            args (string): The playlist links separated by spaces
+        """
         if len(args) <= 0:
             await ctx.send("When using '!al', you must include at least one link to a playlist!")
             return
