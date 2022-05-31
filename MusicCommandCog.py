@@ -26,7 +26,8 @@ class MusicFunctionality(commands.Cog):
     async def dl(self, ctx):
         """Downloads all tracked playlists for the given user
         """
-        await ctx.send("Downloading your playlists now. Please be patient!")
+        #await ctx.send("Downloading your playlists now. Please be patient!")
+        progress_string = ""
         member_id = f'{ctx.message.author.id}'
         logging.info(f"{member_id} began downloading music")
         music_directory = os.path.join(os.getcwd(), 'music', '')
@@ -40,12 +41,22 @@ class MusicFunctionality(commands.Cog):
             logging.info(
                 f"Downloading playlist index {iterator} link '{links[iterator]}'")
 
-            updated_playlist_link = mm.download_playlist_atomic(
+            updated_playlist_link = await mm.download_playlist_atomic(
                 user_music_directory, links[iterator])
             if (updated_playlist_link == ""):
                 # If returns "", then there isn't any new songs.
-                await ctx.send(f"Playlist {iterator+1} had no new songs")
+                # TODO: Create and append to a string until there ARE songs to send, we don't want to send multiple messages in a row of the kind:
+                # "Playlist 1 empty... playlist 2 empty...." etc
+                if len(progress_string) == 0:
+                    progress_string = f"Playlist {iterator+1}"
+                else:
+                    progress_string += f", {iterator+1}"
                 continue
+            else:
+                await ctx.send(progress_string + " had no new songs")
+                progress_string = ""
+
+
             links[iterator] = updated_playlist_link
             #updated_playlist_links = dl_playlist(user_music_directory, links)
             users[member_id] = links
@@ -53,6 +64,8 @@ class MusicFunctionality(commands.Cog):
             # This saves us from needing a massive first time download for all playlists.
             with open(music_json_path, 'w') as json_out:
                 json.dump(users, json_out)
+            await ctx.send(progress_string + " had no new songs.")
+            progress_string = ""
             await ctx.send(f"Playlist {iterator+1} had new songs, all downloaded and updated.")
         await ctx.send("All playlists updated and downloaded, if necessary.")
 

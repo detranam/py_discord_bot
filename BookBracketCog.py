@@ -4,6 +4,9 @@ import json
 import os
 import time
 
+if __name__ == "__main__":
+    print("Import me! I can't be run alone... :(")
+
 
 def ensure_book_dir_exists():
     book_dir = os.path.join(os.getcwd(), 'book')

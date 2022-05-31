@@ -7,3 +7,4 @@ auth.json
 *.webm
 *.part
 *.log
+bin/*
